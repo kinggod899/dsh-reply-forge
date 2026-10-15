@@ -458,3 +458,38 @@ thinking 块带签名           → 原样回传，服务端校验
 | `diag-coverage.mjs` | UI 侧逐会话按钮覆盖探针（当前受 onboarding 阻塞，环境修复后可直接跑） |
 | `diag-explore.mjs` / `diag-net.mjs` | 页面结构（data-slot 树/可点击项）与网络请求探查，定位「界面被谁挡住」 |
 | `web-diag.mjs` | 无头拉起带插件的 web host（§12.5） |
+
+## 14. 阶段 J：v1 封版、公开化与 v2 立项（2026-10-15）
+
+### 14.1 路线决策（用户拍板）
+
+- **v1 就此封版，不再加行为**。契约固化（README「版本边界」节）：
+  伪造只发生在本机渲染层——不动落盘文件、不回写模型侧记录、不被大模型
+  识别。适用面：录屏/演示/截图/本地复盘。
+- **v2 立项**：伪造内容进入会话上下文（模型采信）。设计与分期见
+  **[V2-PLAN.md](V2-PLAN.md)**：主线是 §10.4 的路径 B（受控态改写
+  zstd JSONL + 剥 thinkingSignature 走降级通道），分 v2.0 关闭态落盘改写
+  → v2.1 运行态写入 → v2.2 UI 合一期；v2.0 前有两个评审点要先实测
+  （帧策略兼容性、宿主热重载行为）。
+
+### 14.2 公开化（GitHub）
+
+- 本地 git 仓库已初始化（`main`，两个提交）：①首发全量；②公开化脱敏。
+- **脱敏清单**（所有本机路径从分发物中移除）：
+  - `scripts/diag-paths.mjs`（新）：诊断脚本路径统一走 `DSH_CHECKOUT` /
+    `DSH_WORKSPACE` / `DSH_PROFILE` 环境变量或 `scripts/diag.config.json`
+    （本地文件、已 gitignore）；checkout 缺失时明确报错退出；
+  - 会话根路径改复用 `session-log.mjs` 的 `sessionsRootDefault()`
+    （尊重 `DSH_HOME`）；
+  - `enable/disable/reinstall`：profile 缺省改 `~/.dsh` 推导；reinstall 的
+    `@local` 链接改为仓库相对路径；沙箱 node 目录改 `DSH_SANDBOX_NODE_DIR`
+    覆盖；pnpm 可用 `DSH_PNPM` 精确指定；
+  - bat（GBK+CRLF 保持）：新增 `DSH_APP_DIR` / `PROFILE_DIR` 环境变量块，
+    路径不再写死；
+  - HANDOFF/README 机器路径替换为占位符；
+  - 新增 `LICENSE`（MIT，与 package.json 一致）、`.gitattributes`
+    （bat 禁 EOL 转换）、`.gitignore`（bak/临时/本地配置）。
+- 验证：全仓 grep 无本机路径残留；测试 10/10 + 11/11；`build-client.mjs
+  --check` 新鲜；bat 解码回读 GBK 无损。
+- 本机 dev checkout 路径等放在 `scripts/diag.config.json`（不随仓库分发），
+  换机时按 `diag-paths.mjs` 报错指引重建即可。
