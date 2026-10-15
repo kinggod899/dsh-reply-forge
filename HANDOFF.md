@@ -22,7 +22,7 @@
 
 | 事实 | 来源 |
 |---|---|
-| profile 根在 `C:\Users\Administrator\.dsh\profiles\desktop` | `$env:DSH_PROFILE_DIR` |
+| profile 根在 `<dsh-home>\profiles\desktop`（默认 `~/.dsh`，可用 `DSH_HOME` / `DSH_PROFILE_DIR` 覆盖） | `$env:DSH_PROFILE_DIR` |
 | 插件契约 = npm 包 + `cordis.patch.yml` 插入条目 + Node half + client half | 实测 gal-view 与 dsh-free-design-preset 两个已安装插件 |
 | client half 加载契约为 `window.__ModuleLoader__.load({id, factory: (require) => module.exports})` | `gal-view/scripts/build-client.mjs` |
 | `dsh.client.platform` 必须是 string 且 `=== "web"`，`inject` 必须是 string 数组 | 内核 `app.asar/dsh/node_modules/@deepseek-ai/dsh-client-modules/lib/index.js` 的 `parseDshClient()` |
@@ -31,9 +31,9 @@
 
 ### 阶段 B：插件实现（成功）
 
-源码在 `E:\文档\dsh-reply-forge`，零依赖、无 JSX、自研构建器（环境无 esbuild）。
+源码在本仓库根目录，零依赖、无 JSX、自研构建器（环境无 esbuild）。
 
-模块划分（相对 `E:\文档\dsh-reply-forge`）：
+模块划分（相对仓库根）：
 - `.dsh-plugin/index.mjs` — Node half，空实现
 - `.dsh-plugin/client/index.mjs` — 主控：DOM 注入、接管、编辑器、生命周期
 - `.dsh-plugin/client/picker.mjs` — 消息块拾取（结构特征定位，非类名）
@@ -51,7 +51,7 @@
 `pnpm-lock.yaml` 里没有 `@local/dsh-reply-forge`（实测 `lock.includes('reply-forge') === false`），而对照的 `dsh-free-design-preset` 在 lockfile 里有记录。宿主启动时按 lockfile 解析 bundle 列表，遇到未登记的包即失败。
 
 排障时排除了两个错误方向，这里记录以免接手者重走弯路：
-- `E:\game\DeepSeekHarness\debug.log` 那 725 行全是 Electron crashpad 的 `TransactNamedPipe: 有更多数据可用 (0xEA)`，实测过滤后 **non-noise = 0 行**，与本故障无关。
+- `<dsh 安装目录>\debug.log` 那 725 行全是 Electron crashpad 的 `TransactNamedPipe: 有更多数据可用 (0xEA)`，实测过滤后 **non-noise = 0 行**，与本故障无关。
 - `.dsh-market/log.ndjson` 没有该插件的任何记录，说明市场插件链路根本没参与。
 
 ### 阶段 D：二次损伤（我犯的错）
@@ -112,7 +112,7 @@ client.js 已编入 classify.mjs: 是（含本轮新增代码；注册 id 错位
 | `scripts/reinstall.mjs` + `重装插件.bat` | 一键重装：检测 dsh 是否在跑、备份、重建 junction、`pnpm install --offline` → 失败退 `--prefer-offline`、7 项验证 |
 
 **`reinstall.mjs` 里修掉的两个 bug（接手者注意保留）**：
-1. **pnpm 路径含空格**。pnpm 在 `C:\Users\Administrator\AppData\Local\Doubao\User Data\sandbox_runtime\...\node\pnpm.cmd`，直接 `spawnSync(pnpm, args, {shell:true})` 会被空格切断。正确写法是 `spawnSync('cmd', ['/c', '"' + pnpm + '" ' + args.join(' ') + ' --dir "' + PROFILE + '"'])`。
+1. **pnpm 路径含空格**。宿主编运行时自带的 pnpm（位于桌面端沙箱 node 目录，路径含空格，可用 `DSH_SANDBOX_NODE_DIR` 指定；或直接用 `DSH_PNPM` 精确指定 pnpm.exe），直接 `spawnSync(pnpm, args, {shell:true})` 会被空格切断。正确写法是 `spawnSync('cmd', ['/c', '"' + pnpm + '" ' + args.join(' ') + ' --dir "' + PROFILE + '"'])`。
 2. **`await import` 不能用在非 async 顶层**。原脚本在 CJS 风格的顶层流里用了 `await import('node:fs')`，改为文件头统一 `import { mkdirSync } from 'node:fs'`。
 
 ---
@@ -156,7 +156,7 @@ client.js 已编入 classify.mjs: 是（含本轮新增代码；注册 id 错位
 
 ## 7. 备份索引
 
-全部位于 `C:\Users\Administrator\.dsh\profiles\desktop\`：
+全部位于 profile 目录（`<dsh-home>\profiles\desktop`，下称 profile）：
 
 | 备份 | 含义 |
 |---|---|

@@ -10,11 +10,10 @@ import { join } from 'node:path'
 import { classifyNaturalLanguage } from '../.dsh-plugin/client/classify.mjs'
 import { MIN_TEXT } from '../.dsh-plugin/client/picker.mjs'
 
-const SESSIONS_ROOT = 'C:/Users/Administrator/.dsh/sessions'
-
-const { readSessionEvents, assistantTextBlocks } = await import(
+const { readSessionEvents, assistantTextBlocks, sessionsRootDefault } = await import(
   new URL('../.dsh-plugin/server/session-log.mjs', import.meta.url).href
 )
+const SESSIONS_ROOT = sessionsRootDefault()
 
 const files = []
 for (const slug of readdirSync(SESSIONS_ROOT)) {

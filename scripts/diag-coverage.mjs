@@ -20,18 +20,19 @@ import { dirname, join } from 'node:path'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TMP = join(ROOT, '.diag-tmp')
-const CHECKOUT = 'E:/game/DSH'
+import { diagPaths, requireCheckout } from './diag-paths.mjs'
+const { profile: PROFILE, checkout: CHECKOUT, workspace: WORKSPACE } = diagPaths()
+requireCheckout(CHECKOUT)
 const require2 = createRequire(CHECKOUT + '/node_modules/.anchor.cjs')
 const { boot, loadOverlayPatches } = await import(pathToFileURL(require2.resolve('@deepseek-ai/dsh-app-boot')).href)
 const { provideCmdline } = await import(pathToFileURL(require2.resolve('@deepseek-ai/dsh-cmdline')).href)
 
 // ---------- 1. 启动精简 web host，捕获带 token 的 URL ----------
 
-// 会话按工作区（cwd）分目录存储；本机 45 个会话都在 E:\文档 工作区
-// 的 slug 下，宿主启动时的 cwd 决定它认哪个工作区。切过去再 boot。
-process.chdir('E:/文档')
+// 会话按工作区（cwd）分目录存储，宿主启动时的 cwd 决定它认哪个工作区。
+// 用 diag.config.json 的 workspace 或 DSH_WORKSPACE 指定（见 diag-paths.mjs）。
+if (WORKSPACE !== '') process.chdir(WORKSPACE)
 
-const PROFILE = 'C:/Users/Administrator/.dsh/profiles/desktop'
 const WANT = new Set(['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app', '@local/dsh-reply-forge'])
 
 const manifest = JSON.parse(readFileSync(PROFILE + '/package.json', 'utf8'))
@@ -235,10 +236,10 @@ const driver = `(() => {
 // ---------- 6. 逐个会话探测（Node 侧真值 + 页面侧复算） ----------
 
 // Node 侧：枚举磁盘会话，直接读落盘事件做真值
-const { readSessionEvents, assistantTextBlocks } = await import(
+const { readSessionEvents, assistantTextBlocks, sessionsRootDefault } = await import(
   pathToFileURL(join(ROOT, '.dsh-plugin/server/session-log.mjs')).href
 )
-const SESSIONS_ROOT = 'C:/Users/Administrator/.dsh/sessions'
+const SESSIONS_ROOT = sessionsRootDefault()
 const { readdirSync, statSync } = await import('node:fs')
 const sessionDirs = []
 for (const slug of readdirSync(SESSIONS_ROOT)) {

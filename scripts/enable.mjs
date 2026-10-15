@@ -19,8 +19,12 @@
 import { readFileSync, writeFileSync, existsSync, copyFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
+import os from 'node:os'
 
-const PROFILE = process.env.DSH_PROFILE_DIR ?? 'C:\\Users\\Administrator\\.dsh\\profiles\\desktop'
+// dsh 家目录：DSH_HOME 覆盖，缺省 ~/.dsh；profile 目录可再用
+// DSH_PROFILE_DIR 精确指定。
+const DSH_HOME = process.env.DSH_HOME ?? join(os.homedir(), '.dsh')
+const PROFILE = process.env.DSH_PROFILE_DIR ?? join(DSH_HOME, 'profiles', 'desktop')
 const PKG_ID = '@local/dsh-reply-forge'
 const LINK = join(PROFILE, 'node_modules', '@local', 'dsh-reply-forge')
 

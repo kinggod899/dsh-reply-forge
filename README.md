@@ -31,7 +31,7 @@ DSH 桌面端插件：就地编辑（伪造）会话里 AI 输出的回复。
 
 手动方式（已写入 `~/.dsh/profiles/desktop`）：
 
-- `package.json` 的 `dependencies` 增加 `"@local/dsh-reply-forge": "link:E:/文档/dsh-reply-forge"`；
+- `package.json` 的 `dependencies` 增加 `"@local/dsh-reply-forge": "link:<本仓库绝对路径>"`；
 - `dsh.profile.bundles` 末尾追加该包；
 - `node_modules/@local/dsh-reply-forge` 是指向本目录的 junction。
 

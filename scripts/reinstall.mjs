@@ -12,14 +12,22 @@
 
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, copyFileSync, mkdirSync, readdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve, dirname } from 'node:path'
+import os from 'node:os'
+import { fileURLToPath } from 'node:url'
 
-const PROFILE = process.env.DSH_PROFILE_DIR ?? 'C:\\Users\\Administrator\\.dsh\\profiles\\desktop'
+// dsh 家目录：DSH_HOME 覆盖，缺省 ~/.dsh；profile 目录可再用
+// DSH_PROFILE_DIR 精确指定。
+const DSH_HOME = process.env.DSH_HOME ?? join(os.homedir(), '.dsh')
+const PROFILE = process.env.DSH_PROFILE_DIR ?? join(DSH_HOME, 'profiles', 'desktop')
 const NODE_MODULES = join(PROFILE, 'node_modules')
 const LOCAL_DIR = join(NODE_MODULES, '@local')
+// 本仓库根（脚本位于 <repo>/scripts/）；@local 链接指向仓库自身与
+// 相邻的兄弟插件目录，路径随仓库位置自动解析。
+const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const LINKS = [
-  { name: 'dsh-free-design-preset', target: 'E:\\文档\\dsh-free-design-preset' },
-  { name: 'dsh-reply-forge', target: 'E:\\文档\\dsh-reply-forge' },
+  { name: 'dsh-free-design-preset', target: process.env.DSH_PRESET_DIR ?? resolve(REPO_ROOT, '..', 'dsh-free-design-preset') },
+  { name: 'dsh-reply-forge', target: REPO_ROOT },
 ]
 
 const log = (...a) => console.log('[reinstall]', ...a)
@@ -56,13 +64,14 @@ for (const link of LINKS) {
 
 // 3. pnpm install
 log('步骤 3/5 安装依赖（优先离线）')
-const sandboxNodeDir = 'C:\\Users\\Administrator\\AppData\\Local\\Doubao\\User Data\\sandbox_runtime\\bases\\d0ace100fdff5b2d247847aca1e3d83b\\node'
+// pnpm 查找顺序：DSH_PNPM 环境变量 → 宿主运行时自带 pnpm（DSH_SANDBOX_NODE_DIR
+// 覆盖，典型如桌面端沙箱 node 目录，路径含空格必须整条加引号走 cmd）→ PATH。
+const sandboxNodeDir = process.env.DSH_SANDBOX_NODE_DIR ?? ''
 const pnpmCandidates = [
   process.env.DSH_PNPM ?? '',
   // 优先同目录自带的 pnpm.exe：可被 CreateProcess 直接拉起，
-  // 彻底绕开 cmd 对含空格路径（“Doubao\User Data”）的引号处理问题。
-  sandboxNodeDir + '\\node_modules\\pnpm\\pnpm.exe',
-  sandboxNodeDir + '\\pnpm.cmd',
+  // 彻底绕开 cmd 对含空格路径的引号处理问题。
+  ...(sandboxNodeDir !== '' ? [sandboxNodeDir + '\\node_modules\\pnpm\\pnpm.exe', sandboxNodeDir + '\\pnpm.cmd'] : []),
   'pnpm',
 ].filter(Boolean)
 

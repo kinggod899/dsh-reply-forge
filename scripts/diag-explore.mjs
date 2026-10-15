@@ -7,12 +7,13 @@ import { dirname, join } from 'node:path'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const TMP = join(ROOT, '.diag-tmp')
-const CHECKOUT = 'E:/game/DSH'
+import { diagPaths, requireCheckout } from './diag-paths.mjs'
+const { profile: PROFILE, checkout: CHECKOUT } = diagPaths()
+requireCheckout(CHECKOUT)
 const require2 = createRequire(CHECKOUT + '/node_modules/.anchor.cjs')
 const { boot, loadOverlayPatches } = await import(pathToFileURL(require2.resolve('@deepseek-ai/dsh-app-boot')).href)
 const { provideCmdline } = await import(pathToFileURL(require2.resolve('@deepseek-ai/dsh-cmdline')).href)
 
-const PROFILE = 'C:/Users/Administrator/.dsh/profiles/desktop'
 const manifest = JSON.parse(readFileSync(PROFILE + '/package.json', 'utf8'))
 // 完整 profile：侧边栏/会话列表可能由生态 bundle（dsh-better-sidebar 等）
 // 提供，精简集合起不来。fidelity 优先。

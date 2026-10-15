@@ -25,19 +25,22 @@
 //   document.querySelectorAll('[data-rf-taken]').length
 //   document.querySelectorAll('[data-slot="conversation.chat.node"]').length
 //
-// 依赖：本机 dsh dev checkout（E:/game/DSH，含全套 node_modules）。
+// 依赖：本机 dsh dev checkout（含全套 node_modules 的源码检出）。
+// 路径经 scripts/diag-paths.mjs 解析：DSH_CHECKOUT 环境变量或
+// scripts/diag.config.json（本地文件，不随仓库分发）。
 // 脚本通过 createRequire 锚定 checkout 解析 @deepseek-ai/*，与运行
 // 时的工作目录无关。
 import { createRequire } from 'node:module'
 import { pathToFileURL } from 'node:url'
 import { readFileSync, existsSync } from 'node:fs'
 
-const CHECKOUT = 'E:/game/DSH'
+import { diagPaths, requireCheckout } from './diag-paths.mjs'
+const { profile: PROFILE, checkout: CHECKOUT } = diagPaths()
+requireCheckout(CHECKOUT)
 const require2 = createRequire(CHECKOUT + '/node_modules/.anchor.cjs')
 const { boot, loadOverlayPatches } = await import(pathToFileURL(require2.resolve('@deepseek-ai/dsh-app-boot')).href)
 const { provideCmdline } = await import(pathToFileURL(require2.resolve('@deepseek-ai/dsh-cmdline')).href)
 
-const PROFILE = 'C:/Users/Administrator/.dsh/profiles/desktop'
 // 精简集合：base + web-app 自带全套浏览器 roster（client-ui-* 都在
 // dsh-web-app 的 patch 里），加本插件。其余 bundle（tavern 等）与
 // 排查无关，只拖慢启动。
