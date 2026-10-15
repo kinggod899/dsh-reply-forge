@@ -1,0 +1,12 @@
+# dsh-reply-forge bundle patch：向 web 组合挂载「回复锻造」插件。
+#
+# Node half 极简（所有状态与编辑都在浏览器 half：localStorage 持久化，
+# 不新增任何 HTTP 路由、不消费宿主服务），主体是 client half —— 经
+# package.json 的 dsh.client 声明由 client 内核组合进页面，自行在会话
+# 消息上挂就地编辑入口。
+#
+# 只插入一个以插件 id 命名的条目，不修改任何既有条目，因此与其它插件
+# 共享同一份组合树时不会相互覆盖。
+- insert:
+    - id: dsh-reply-forge
+      name: '@local/dsh-reply-forge'

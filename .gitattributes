@@ -1,0 +1,9 @@
+# bat 文件是 GBK + CRLF 配方（见 README），禁止 git 做 EOL 转换，
+# 否则 checkout 到其它环境会乱码。
+*.bat -text
+
+# 其余文本按 LF 入库
+*.mjs text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.json text eol=lf

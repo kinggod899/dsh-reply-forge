@@ -1,0 +1,26 @@
+{
+  "name": "@local/dsh-reply-forge",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DSH 桌面端插件：就地编辑（伪造）会话里 AI 输出的回复，仅影响本机渲染与快照，不回写模型侧记录",
+  "main": "./.dsh-plugin/index.mjs",
+  "exports": {
+    ".": "./.dsh-plugin/index.mjs",
+    "./client": "./.dsh-plugin/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "slots"
+      ]
+    }
+  },
+  "license": "MIT"
+}
